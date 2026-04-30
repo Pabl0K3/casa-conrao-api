@@ -6,6 +6,7 @@ import com.casaconrao.api.model.Cliente;
 import com.casaconrao.api.service.ClienteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import com.casaconrao.api.dto.RecuperarPasswordRequest;
 
 @RestController
 @RequestMapping("/api/clientes")
@@ -22,5 +23,11 @@ public class ClienteController {
     ) {
         Cliente cliente = clienteService.actualizarCliente(idCliente, request);
         return new ClienteResponse(cliente);
+    }
+    
+    @PutMapping("/recuperar-password")
+    public String recuperarPassword(@RequestBody RecuperarPasswordRequest request) {
+        clienteService.recuperarPassword(request);
+        return "Contraseña actualizada correctamente";
     }
 }
