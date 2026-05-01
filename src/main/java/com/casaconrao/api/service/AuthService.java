@@ -29,12 +29,14 @@ public class AuthService {
     // 📝 REGISTRO
     public Cliente registro(RegistroRequest request) {
 
+        validarNombreApellido(request.getNombre(), request.getApellido());
+
         if (clienteRepository.existsByCorreo(request.getCorreo())) {
             throw new RuntimeException("El correo ya está registrado");
         }
 
         if (request.getTelefono() != null &&
-            clienteRepository.existsByTelefono(request.getTelefono())) {
+                clienteRepository.existsByTelefono(request.getTelefono())) {
             throw new RuntimeException("El teléfono ya está registrado");
         }
 
@@ -46,5 +48,15 @@ public class AuthService {
         cliente.setPass(request.getPass());
 
         return clienteRepository.save(cliente);
+    }
+
+    private void validarNombreApellido(String nombre, String apellido) {
+        if (nombre == null || !nombre.matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$")) {
+            throw new RuntimeException("El nombre solo puede contener letras");
+        }
+
+        if (apellido == null || !apellido.matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$")) {
+            throw new RuntimeException("El apellido solo puede contener letras");
+        }
     }
 }
