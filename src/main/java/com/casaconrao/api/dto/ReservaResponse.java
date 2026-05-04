@@ -1,6 +1,9 @@
 package com.casaconrao.api.dto;
 
+import com.casaconrao.api.model.Mesa;
 import com.casaconrao.api.model.Reserva;
+
+import java.util.List;
 
 public class ReservaResponse {
 
@@ -8,8 +11,16 @@ public class ReservaResponse {
     private Integer numeroPersonas;
     private String fecha;
     private String estado;
+
+    // Compatibilidad antigua
     private Integer idMesa;
     private Integer numeroMesa;
+
+    // Nuevo sistema
+    private List<Integer> idsMesas;
+    private List<Integer> numerosMesas;
+    private Integer capacidadTotal;
+
     private Integer idCliente;
 
     public ReservaResponse(Reserva reserva) {
@@ -17,9 +28,32 @@ public class ReservaResponse {
         this.numeroPersonas = reserva.getNumeroPersonas();
         this.fecha = reserva.getFecha().toString();
         this.estado = reserva.getEstado();
-        this.idMesa = reserva.getMesa().getIdMesa();
-        this.numeroMesa = reserva.getMesa().getNumero();
-        this.idCliente = reserva.getCliente().getIdCliente();
+
+        if (reserva.getMesa() != null) {
+            this.idMesa = reserva.getMesa().getIdMesa();
+            this.numeroMesa = reserva.getMesa().getNumero();
+        }
+
+        if (reserva.getMesas() != null && !reserva.getMesas().isEmpty()) {
+            this.idsMesas = reserva.getMesas()
+                    .stream()
+                    .map(Mesa::getIdMesa)
+                    .toList();
+
+            this.numerosMesas = reserva.getMesas()
+                    .stream()
+                    .map(Mesa::getNumero)
+                    .toList();
+
+            this.capacidadTotal = reserva.getMesas()
+                    .stream()
+                    .mapToInt(Mesa::getCapacidad)
+                    .sum();
+        }
+
+        if (reserva.getCliente() != null) {
+            this.idCliente = reserva.getCliente().getIdCliente();
+        }
     }
 
     public Integer getIdReserva() {
@@ -44,6 +78,18 @@ public class ReservaResponse {
 
     public Integer getNumeroMesa() {
         return numeroMesa;
+    }
+
+    public List<Integer> getIdsMesas() {
+        return idsMesas;
+    }
+
+    public List<Integer> getNumerosMesas() {
+        return numerosMesas;
+    }
+
+    public Integer getCapacidadTotal() {
+        return capacidadTotal;
     }
 
     public Integer getIdCliente() {

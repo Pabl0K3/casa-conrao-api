@@ -48,7 +48,12 @@ public class ReservaService {
         reserva.setFecha(fecha);
         reserva.setEstado("Pendiente");
         reserva.setCliente(cliente);
+
+        // Compatibilidad antigua
         reserva.setMesa(mesa);
+
+        // Nuevo sistema
+        reserva.setMesas(List.of(mesa));
 
         return reservaRepository.save(reserva);
     }

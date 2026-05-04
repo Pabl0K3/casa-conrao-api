@@ -2,6 +2,8 @@ package com.casaconrao.api.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "Reserva")
@@ -21,9 +23,19 @@ public class Reserva {
     @Column(name = "estado")
     private String estado;
 
+    // 🔴 RELACIÓN ACTUAL (NO TOCAR AÚN)
     @ManyToOne
     @JoinColumn(name = "idMesa")
     private Mesa mesa;
+
+    // 🟢 NUEVA RELACIÓN (VARIAS MESAS)
+    @ManyToMany
+    @JoinTable(
+        name = "ReservaMesa",
+        joinColumns = @JoinColumn(name = "idReserva"),
+        inverseJoinColumns = @JoinColumn(name = "idMesa")
+    )
+    private List<Mesa> mesas = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "idCliente")
@@ -31,6 +43,8 @@ public class Reserva {
 
     public Reserva() {
     }
+
+    // GETTERS & SETTERS
 
     public Integer getIdReserva() {
         return idReserva;
@@ -70,6 +84,14 @@ public class Reserva {
 
     public void setMesa(Mesa mesa) {
         this.mesa = mesa;
+    }
+
+    public List<Mesa> getMesas() {
+        return mesas;
+    }
+
+    public void setMesas(List<Mesa> mesas) {
+        this.mesas = mesas;
     }
 
     public Cliente getCliente() {
