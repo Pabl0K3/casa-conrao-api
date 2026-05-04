@@ -36,13 +36,14 @@ public class ReservaService {
         Cliente cliente = clienteRepository.findById(request.getIdCliente())
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
-        Mesa mesa = mesaRepository.findById(request.getIdMesa())
-                .orElseThrow(() -> new RuntimeException("Mesa no encontrada"));
-
         LocalDateTime fecha = LocalDateTime.parse(request.getFecha());
 
         validarHorarioApertura(fecha);
-        validarMesaDisponible(mesa.getIdMesa(), fecha);
+
+        List<Mesa> mesasSeleccionadas = buscarMesasDisponibles(
+                request.getNumeroPersonas(),
+                request.getFecha()
+        );
 
         Reserva reserva = new Reserva();
         reserva.setNumeroPersonas(request.getNumeroPersonas());
@@ -50,11 +51,11 @@ public class ReservaService {
         reserva.setEstado("Pendiente");
         reserva.setCliente(cliente);
 
-        // Compatibilidad antigua
-        reserva.setMesa(mesa);
+        // Compatibilidad temporal: guardamos una mesa principal
+        reserva.setMesa(mesasSeleccionadas.get(0));
 
-        // Nuevo sistema
-        reserva.setMesas(List.of(mesa));
+        // Nuevo sistema: guardamos todas las mesas en ReservaMesa
+        reserva.setMesas(mesasSeleccionadas);
 
         return reservaRepository.save(reserva);
     }
