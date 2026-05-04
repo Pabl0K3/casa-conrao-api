@@ -36,11 +36,6 @@ public class ReservaController {
 		reservaService.cancelarReserva(idReserva);
 		return "Reserva cancelada correctamente";
 	}
-
-	@GetMapping("/disponibilidad")
-	public Integer buscarMesaDisponible(@RequestParam Integer numeroPersonas, @RequestParam String fecha) {
-		return reservaService.buscarMesaDisponible(numeroPersonas, fecha).getIdMesa();
-	}
 	
 	@GetMapping("/disponibilidad-multiple")
 	public List<Integer> buscarMesasDisponibles(

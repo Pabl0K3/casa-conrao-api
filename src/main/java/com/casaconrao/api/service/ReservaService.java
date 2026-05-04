@@ -50,32 +50,9 @@ public class ReservaService {
         reserva.setFecha(fecha);
         reserva.setEstado("Pendiente");
         reserva.setCliente(cliente);
-
-        // Compatibilidad temporal: guardamos una mesa principal
-        reserva.setMesa(mesasSeleccionadas.get(0));
-
-        // Nuevo sistema: guardamos todas las mesas en ReservaMesa
         reserva.setMesas(mesasSeleccionadas);
 
         return reservaRepository.save(reserva);
-    }
-
-    public Mesa buscarMesaDisponible(Integer numeroPersonas, String fechaTexto) {
-        LocalDateTime fecha = LocalDateTime.parse(fechaTexto);
-
-        validarHorarioApertura(fecha);
-
-        List<Mesa> mesas = mesaRepository.findByCapacidadGreaterThanEqual(numeroPersonas);
-
-        for (Mesa mesa : mesas) {
-            boolean ocupada = mesaOcupadaEnRango(mesa.getIdMesa(), fecha);
-
-            if (!ocupada) {
-                return mesa;
-            }
-        }
-
-        throw new RuntimeException("No hay mesas disponibles");
     }
 
     public void cancelarReserva(Integer idReserva) {
@@ -87,37 +64,6 @@ public class ReservaService {
         reservaRepository.save(reserva);
     }
 
-    private void validarHorarioApertura(LocalDateTime fecha) {
-        LocalTime hora = fecha.toLocalTime();
-
-        LocalTime apertura = LocalTime.of(12, 0);
-        LocalTime cierre = LocalTime.of(1, 0);
-
-        boolean dentroHorario = !hora.isBefore(apertura) || !hora.isAfter(cierre);
-
-        if (!dentroHorario) {
-            throw new RuntimeException("Fuera del horario de apertura");
-        }
-    }
-
-    private void validarMesaDisponible(Integer idMesa, LocalDateTime fecha) {
-        if (mesaOcupadaEnRango(idMesa, fecha)) {
-            throw new RuntimeException("Mesa no disponible en ese horario");
-        }
-    }
-
-    private boolean mesaOcupadaEnRango(Integer idMesa, LocalDateTime fecha) {
-        LocalDateTime inicio = fecha.minusHours(2);
-        LocalDateTime fin = fecha.plusHours(2);
-
-        return reservaRepository.existsByMesaIdMesaAndFechaBetweenAndEstadoNot(
-                idMesa,
-                inicio,
-                fin,
-                "Cancelada"
-        );
-    }
-    
     public List<Mesa> buscarMesasDisponibles(Integer numeroPersonas, String fechaTexto) {
         LocalDateTime fecha = LocalDateTime.parse(fechaTexto);
 
@@ -144,7 +90,47 @@ public class ReservaService {
 
         return mejorCombinacion;
     }
-    
+
+    private void validarHorarioApertura(LocalDateTime fecha) {
+        LocalTime hora = fecha.toLocalTime();
+
+        LocalTime apertura = LocalTime.of(12, 0);
+        LocalTime cierre = LocalTime.of(1, 0);
+
+        boolean dentroHorario = !hora.isBefore(apertura) || !hora.isAfter(cierre);
+
+        if (!dentroHorario) {
+            throw new RuntimeException("Fuera del horario de apertura");
+        }
+    }
+
+    private boolean mesaOcupadaEnRango(Integer idMesa, LocalDateTime fecha) {
+        LocalDateTime inicio = fecha.minusHours(2);
+        LocalDateTime fin = fecha.plusHours(2);
+
+        List<Reserva> reservas = reservaRepository.findAll();
+
+        for (Reserva reserva : reservas) {
+            if ("Cancelada".equals(reserva.getEstado())) {
+                continue;
+            }
+
+            boolean dentroDelRango =
+                    !reserva.getFecha().isBefore(inicio)
+                            && !reserva.getFecha().isAfter(fin);
+
+            if (dentroDelRango) {
+                for (Mesa mesa : reserva.getMesas()) {
+                    if (mesa.getIdMesa().equals(idMesa)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
     private void buscarMejorCombinacion(
             List<Mesa> mesas,
             int numeroPersonas,

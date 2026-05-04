@@ -12,11 +12,6 @@ public class ReservaResponse {
     private String fecha;
     private String estado;
 
-    // Compatibilidad antigua
-    private Integer idMesa;
-    private Integer numeroMesa;
-
-    // Nuevo sistema
     private List<Integer> idsMesas;
     private List<Integer> numerosMesas;
     private Integer capacidadTotal;
@@ -28,11 +23,6 @@ public class ReservaResponse {
         this.numeroPersonas = reserva.getNumeroPersonas();
         this.fecha = reserva.getFecha().toString();
         this.estado = reserva.getEstado();
-
-        if (reserva.getMesa() != null) {
-            this.idMesa = reserva.getMesa().getIdMesa();
-            this.numeroMesa = reserva.getMesa().getNumero();
-        }
 
         if (reserva.getMesas() != null && !reserva.getMesas().isEmpty()) {
             this.idsMesas = reserva.getMesas()
@@ -70,14 +60,6 @@ public class ReservaResponse {
 
     public String getEstado() {
         return estado;
-    }
-
-    public Integer getIdMesa() {
-        return idMesa;
-    }
-
-    public Integer getNumeroMesa() {
-        return numeroMesa;
     }
 
     public List<Integer> getIdsMesas() {
