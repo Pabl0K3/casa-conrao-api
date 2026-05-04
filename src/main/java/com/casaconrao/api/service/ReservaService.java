@@ -123,28 +123,61 @@ public class ReservaService {
 
         validarHorarioApertura(fecha);
 
-        // Todas las mesas ordenadas de mayor a menor capacidad
-        List<Mesa> mesas = mesaRepository.findAll()
+        List<Mesa> mesasDisponibles = mesaRepository.findAll()
                 .stream()
-                .sorted((a, b) -> b.getCapacidad() - a.getCapacidad())
+                .filter(mesa -> !mesaOcupadaEnRango(mesa.getIdMesa(), fecha))
                 .toList();
 
-        List<Mesa> seleccionadas = new ArrayList<>();
-        int capacidadTotal = 0;
+        List<Mesa> mejorCombinacion = new ArrayList<>();
 
-        for (Mesa mesa : mesas) {
-            boolean ocupada = mesaOcupadaEnRango(mesa.getIdMesa(), fecha);
+        buscarMejorCombinacion(
+                mesasDisponibles,
+                numeroPersonas,
+                0,
+                new ArrayList<>(),
+                mejorCombinacion
+        );
 
-            if (!ocupada) {
-                seleccionadas.add(mesa);
-                capacidadTotal += mesa.getCapacidad();
-            }
-
-            if (capacidadTotal >= numeroPersonas) {
-                return seleccionadas;
-            }
+        if (mejorCombinacion.isEmpty()) {
+            throw new RuntimeException("No hay combinación de mesas disponible");
         }
 
-        throw new RuntimeException("No hay combinación de mesas disponible");
+        return mejorCombinacion;
+    }
+    
+    private void buscarMejorCombinacion(
+            List<Mesa> mesas,
+            int numeroPersonas,
+            int indice,
+            List<Mesa> actual,
+            List<Mesa> mejor
+    ) {
+        int capacidadActual = actual.stream()
+                .mapToInt(Mesa::getCapacidad)
+                .sum();
+
+        int capacidadMejor = mejor.stream()
+                .mapToInt(Mesa::getCapacidad)
+                .sum();
+
+        if (capacidadActual >= numeroPersonas) {
+            if (mejor.isEmpty()
+                    || capacidadActual < capacidadMejor
+                    || (capacidadActual == capacidadMejor && actual.size() < mejor.size())) {
+                mejor.clear();
+                mejor.addAll(actual);
+            }
+            return;
+        }
+
+        if (indice >= mesas.size()) {
+            return;
+        }
+
+        actual.add(mesas.get(indice));
+        buscarMejorCombinacion(mesas, numeroPersonas, indice + 1, actual, mejor);
+
+        actual.remove(actual.size() - 1);
+        buscarMejorCombinacion(mesas, numeroPersonas, indice + 1, actual, mejor);
     }
 }
