@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -114,5 +115,35 @@ public class ReservaService {
                 fin,
                 "Cancelada"
         );
+    }
+    
+    public List<Mesa> buscarMesasDisponibles(Integer numeroPersonas, String fechaTexto) {
+        LocalDateTime fecha = LocalDateTime.parse(fechaTexto);
+
+        validarHorarioApertura(fecha);
+
+        // Todas las mesas ordenadas de mayor a menor capacidad
+        List<Mesa> mesas = mesaRepository.findAll()
+                .stream()
+                .sorted((a, b) -> b.getCapacidad() - a.getCapacidad())
+                .toList();
+
+        List<Mesa> seleccionadas = new ArrayList<>();
+        int capacidadTotal = 0;
+
+        for (Mesa mesa : mesas) {
+            boolean ocupada = mesaOcupadaEnRango(mesa.getIdMesa(), fecha);
+
+            if (!ocupada) {
+                seleccionadas.add(mesa);
+                capacidadTotal += mesa.getCapacidad();
+            }
+
+            if (capacidadTotal >= numeroPersonas) {
+                return seleccionadas;
+            }
+        }
+
+        throw new RuntimeException("No hay combinación de mesas disponible");
     }
 }

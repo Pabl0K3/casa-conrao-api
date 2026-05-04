@@ -2,6 +2,7 @@ package com.casaconrao.api.controller;
 
 import com.casaconrao.api.dto.ReservaRequest;
 import com.casaconrao.api.dto.ReservaResponse;
+import com.casaconrao.api.model.Mesa;
 import com.casaconrao.api.model.Reserva;
 import com.casaconrao.api.service.ReservaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,5 +40,16 @@ public class ReservaController {
 	@GetMapping("/disponibilidad")
 	public Integer buscarMesaDisponible(@RequestParam Integer numeroPersonas, @RequestParam String fecha) {
 		return reservaService.buscarMesaDisponible(numeroPersonas, fecha).getIdMesa();
+	}
+	
+	@GetMapping("/disponibilidad-multiple")
+	public List<Integer> buscarMesasDisponibles(
+	        @RequestParam Integer numeroPersonas,
+	        @RequestParam String fecha
+	) {
+	    return reservaService.buscarMesasDisponibles(numeroPersonas, fecha)
+	            .stream()
+	            .map(Mesa::getIdMesa)
+	            .toList();
 	}
 }
